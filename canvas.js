@@ -1,11 +1,10 @@
 
 
 const canvas = document.getElementById('canvas');
-canvas.width = 545
+canvas.width = 510
 canvas.height = 590
 
 const ctx = canvas.getContext('2d');
-const steps = canvas.getContext('2d');
 
 
 
@@ -59,7 +58,7 @@ class Test{
                 }
                 if(this.veloctiy.y < 0){
                     this.veloctiy.y = 0
-                    this.veloctiy.y = collisionBlock.position.y + this.height + 0.01
+                    this.position.y = this.collisionBlock.y + this.height + 0.01
                     break
                 }
                 
@@ -69,17 +68,17 @@ class Test{
             const collisionBlock = this.platformCollboks[i]
             if(
                 this.position.y + this.height >= collisionBlock.position.y &&
-                this.position.y + this.height <=
-                  collisionBlock.position.y + collisionBlock.height &&
+                this.position.y + this.height <= collisionBlock.position.y + collisionBlock.height &&
                 this.position.x <= collisionBlock.position.x + collisionBlock.width &&
                 this.position.x + this.width >= collisionBlock.position.x
             ){
                 
                 if(this.veloctiy.y > 0){
                     this.veloctiy.y = 0
-                    this.position.y = collisionBlock.position.y - this.height - 0.01
+                    this.position.y = collisionBlock.position.y - this.height + 0.5
                     break
                 }
+                
                 
             }
         }
@@ -101,7 +100,7 @@ class Test{
                 }
                 if(this.veloctiy.x < 0){
                     this.veloctiy.x = 0
-                    this.veloctiy.x = collisionBlock.position.x + this.width + 0.01
+                    this.position.x = collisionBlock.position.x + this.width + 0.01
                     break
                 }
             }
@@ -153,8 +152,8 @@ class floorCollisions{
 
 
 const floor2D = []
-for(let i =0 ; i<floor.length; i+= 36){
-    floor2D.push(floor.slice(i, i+36))
+for(let i =0 ; i<floor.length; i+= 16){
+    floor2D.push(floor.slice(i, i+16))
 }
 const s2d = []
 for(let i =0 ; i<ourStepes.length; i+= 16){
@@ -181,9 +180,9 @@ s2d.forEach((elm, Y)=>{
             mystps.push(new floorCollisions({
                 position:{
                     x: X *32,
-                    y:-Y * 32,
+                    y: -Y * 32,
                 },
-                speed: 0.4
+                speed: .5
             }))
         }
     })
@@ -218,7 +217,15 @@ window.addEventListener('keydown', (e)=>{
             player.veloctiy.x = -2
             break
         case " ":
-            player.veloctiy.y = -5
+            mystps.forEach(elm=>{
+                if(player.position.y + player.height == elm.position.y)
+                {
+                    player.veloctiy.y = -5
+                    
+                }else if(Math.floor(player.position.y + player.height) == canvas.height - 15){
+                    player.veloctiy.y = -5
+                }
+            })
 
     }
 })
