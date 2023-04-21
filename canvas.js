@@ -2,7 +2,7 @@
 
 const canvas = document.getElementById('canvas');
 canvas.width = 545
-canvas.height = 545
+canvas.height = 590
 
 const ctx = canvas.getContext('2d');
 const steps = canvas.getContext('2d');
@@ -69,7 +69,8 @@ class Test{
             const collisionBlock = this.platformCollboks[i]
             if(
                 this.position.y + this.height >= collisionBlock.position.y &&
-                this.position.y <= collisionBlock.position.y + collisionBlock.height &&
+                this.position.y + this.height <=
+                  collisionBlock.position.y + collisionBlock.height &&
                 this.position.x <= collisionBlock.position.x + collisionBlock.width &&
                 this.position.x + this.width >= collisionBlock.position.x
             ){
@@ -79,11 +80,7 @@ class Test{
                     this.position.y = collisionBlock.position.y - this.height - 0.01
                     break
                 }
-                if(this.veloctiy.y < 0){
-                    this.veloctiy.y = 0
-                    this.veloctiy.y = collisionBlock.position.y + this.height + 0.01
-                    break
-                }
+                
             }
         }
     }
@@ -92,10 +89,11 @@ class Test{
             const collisionBlock = this.collbloks[i]
             if(
                 this.position.y + this.height >= collisionBlock.position.y &&
-                this.position.y <= collisionBlock.height + collisionBlock.position.y &&
-                this.position.x <= collisionBlock.width + collisionBlock.position.x &&
-                this.position.x + this.height >= collisionBlock.position.x 
+                this.position.y <= collisionBlock.position.y + collisionBlock.height &&
+                this.position.x <= collisionBlock.position.x + collisionBlock.width &&
+                this.position.x + this.width >= collisionBlock.position.x
             ){
+                
                 if(this.veloctiy.x > 0){
                     this.veloctiy.x = 0
                     this.position.x = collisionBlock.position.x - this.width - 0.01
@@ -106,45 +104,49 @@ class Test{
                     this.veloctiy.x = collisionBlock.position.x + this.width + 0.01
                     break
                 }
-                
             }
         }
-        for(let i = 0; i<this.platformCollboks.length; i++){
-            const collisionBlock = this.platformCollboks[i]
-            if(
-                this.position.y + this.height >= collisionBlock.position.y &&
-                this.position.y <= collisionBlock.position.y + collisionBlock.height &&
-                this.position.x <= collisionBlock.position.x + collisionBlock.width &&
-                this.position.x + this.width >= collisionBlock.position.x
-            ){
+        // for(let i = 0; i<this.platformCollboks.length; i++){
+        //     const platformColl = this.platformCollboks[i]
+        //     if(
+        //         this.position.y + this.height >= platformColl.position.y &&
+        //         this.position.y + this.height <=
+        //           platformColl.position.y + platformColl.height &&
+        //         this.position.x <= platformColl.position.x + platformColl.width &&
+        //         this.position.x + this.width >= platformColl.position.x
+        //     ){
                 
-                if(this.veloctiy.x > 0){
-                    this.veloctiy.x = 0
-                    this.position.x = collisionBlock.position.y - this.width - 0.01
-                    break
-                }
-                if(this.veloctiy.x < 0){
-                    this.veloctiy.x = 0
-                    this.veloctiy.x = collisionBlock.position.x + this.width + 0.01
-                    break
-                }
-            }
-        }
+        //         if(this.veloctiy.x > 0){
+        //             this.veloctiy.x = 0
+        //             this.position.x = collisionBlock.position.x - this.width - 0.01
+        //             break
+        //         }
+        //         if(this.veloctiy.x < 0){
+        //             this.veloctiy.x = 0
+        //             this.veloctiy.x = collisionBlock.position.x + this.width + 0.01
+        //             break
+        //         }
+        //     }
+        // }
     }
 }
 // class for foolrcollision 
 class floorCollisions{
-    constructor({position}){
+    constructor({position, speed=0}){
         this.position = position
-        this.height = 32
+        this.height = 16
         this.width = 32
+        this.speed = speed
     }
     draw(){
         ctx.fillStyle = 'rgba(0,0,255,0.3)'
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
     update(){
-        this.draw(color)
+        this.draw()
+        this.position.y += this.speed
+
+
     }
 }
 
@@ -179,13 +181,13 @@ s2d.forEach((elm, Y)=>{
             mystps.push(new floorCollisions({
                 position:{
                     x: X *32,
-                    y:Y * 32,
-                }
+                    y:-Y * 32,
+                },
+                speed: 0.4
             }))
         }
     })
 })
-
 
 // object of the class player
 const player = new Test({
@@ -246,7 +248,7 @@ function loop(){
         elm.draw()
     })
     mystps.forEach(elm=>{
-        elm.draw()
+        elm.update()
         
     })
     
