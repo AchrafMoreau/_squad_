@@ -12,25 +12,41 @@ const ctx = canvas.getContext('2d');
 ctx.fillRect(0,0, canvas.width, canvas.height)
 
 
+class SpeedLevel{
+    constructor(speed){
+        this.speed = speed
+        const levels = setInterval(()=>{
+            this.speed += .01
+            // console.log(this.speed)
+            // console.log(mystps[mystps.length -1].position.y > canvas.height)
+            if(mystps[mystps.length -1].position.y > canvas.height){
+                clearInterval(levels)
+                console.log('done')
+            }
+        } ,300)
+    }
+}
 
 
-
-const gravity = 0.2
+const gravity = 0.5
 
 // class for player
-class Test{
-    constructor({position, velocity, height, width, collbloks, platformCollboks}){
+class Test extends SpeedLevel{
+    constructor({position, velocity, height, width, collbloks, platformCollboks, speed}){
+        super(speed)
         this.position = position
         this.veloctiy = velocity
         this.height = height
         this.width = width
         this.collbloks = collbloks
         this.platformCollboks = platformCollboks
+        this.speed = speed
     }
 
     draw(color){
         ctx.fillStyle = color
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
+        
     }
 
     update(color){
@@ -38,11 +54,15 @@ class Test{
         this.position.y += this.veloctiy.y
         this.veloctiy.y += gravity
         this.position.x += this.veloctiy.x
-        
+        if(this.position.x  <= 0 ){
+            this.position.x = 0
+        }else if(this.position.x + this.width >= canvas.width){
+            this.position.x = canvas.width - this.width
+        }
         this.checkForVerticalIntraction()
-        this.checkForHorizontalIntraction()
     }
     checkForVerticalIntraction(){
+        
         for(let i = 0; i<this.collbloks.length; i++){
             const collisionBlock = this.collbloks[i]
             if(
@@ -72,17 +92,19 @@ class Test{
                 this.position.x <= collisionBlock.position.x + collisionBlock.width &&
                 this.position.x + this.width >= collisionBlock.position.x
             ){
-                
                 if(this.veloctiy.y > 0){
-                    this.veloctiy.y = 0
-                    this.position.y = collisionBlock.position.y - this.height + 0.5
+                    this.veloctiy.y = 1
+                    
+                    this.position.y = collisionBlock.position.y - this.height + this.speed
                     break
                 }
+                
                 
                 
             }
         }
     }
+
     checkForHorizontalIntraction(){
         for(let i = 0; i<this.collbloks.length; i++){
             const collisionBlock = this.collbloks[i]
@@ -105,37 +127,17 @@ class Test{
                 }
             }
         }
-        // for(let i = 0; i<this.platformCollboks.length; i++){
-        //     const platformColl = this.platformCollboks[i]
-        //     if(
-        //         this.position.y + this.height >= platformColl.position.y &&
-        //         this.position.y + this.height <=
-        //           platformColl.position.y + platformColl.height &&
-        //         this.position.x <= platformColl.position.x + platformColl.width &&
-        //         this.position.x + this.width >= platformColl.position.x
-        //     ){
-                
-        //         if(this.veloctiy.x > 0){
-        //             this.veloctiy.x = 0
-        //             this.position.x = collisionBlock.position.x - this.width - 0.01
-        //             break
-        //         }
-        //         if(this.veloctiy.x < 0){
-        //             this.veloctiy.x = 0
-        //             this.veloctiy.x = collisionBlock.position.x + this.width + 0.01
-        //             break
-        //         }
-        //     }
-        // }
     }
 }
 // class for foolrcollision 
-class floorCollisions{
+class floorCollisions extends SpeedLevel{
     constructor({position, speed=0}){
+        super(speed)
         this.position = position
-        this.height = 16
+        this.height = 12
         this.width = 32
         this.speed = speed
+        
     }
     draw(){
         ctx.fillStyle = 'rgba(0,0,255,0.3)'
@@ -145,10 +147,9 @@ class floorCollisions{
         this.draw()
         this.position.y += this.speed
 
-
     }
+    
 }
-
 
 
 const floor2D = []
@@ -201,11 +202,12 @@ const player = new Test({
     height:50,
     width: 20,
     collbloks: collisions,
-    platformCollboks: mystps
+    platformCollboks: mystps,
+    speed: .5
 })
     
 
-
+// console.log(mystps[mystps.length -1].position.y , canvas.height)
 
 // event listener for keydown
 window.addEventListener('keydown', (e)=>{
@@ -217,15 +219,17 @@ window.addEventListener('keydown', (e)=>{
             player.veloctiy.x = -2
             break
         case " ":
-            mystps.forEach(elm=>{
-                if(player.position.y + player.height == elm.position.y)
-                {
-                    player.veloctiy.y = -5
-                    
-                }else if(Math.floor(player.position.y + player.height) == canvas.height - 15){
-                    player.veloctiy.y = -5
-                }
-            })
+            if(Math.floor(player.position.y + player.height) == canvas.height - 15){
+                player.veloctiy.y = -10
+            }else{
+
+                mystps.forEach(elm=>{
+                    if(player.position.y + player.height == elm.position.y)
+                    {
+                        player.veloctiy.y = -10
+                    }
+                })
+            }
 
     }
 })
@@ -255,8 +259,7 @@ function loop(){
         elm.draw()
     })
     mystps.forEach(elm=>{
-        elm.update()
-        
+        elm.update() 
     })
     
 }
