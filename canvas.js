@@ -1,30 +1,36 @@
 
 
+
 const canvas = document.getElementById('canvas');
 canvas.width = 510
 canvas.height = 590
-
+const img = new Image();
+img.src = 'background.jpg'
 const ctx = canvas.getContext('2d');
 
 
 
 
 ctx.fillRect(0,0, canvas.width, canvas.height)
+Begine = true;
 
 
 class SpeedLevel{
+    
     constructor(speed){
         this.speed = speed
+        // if(mystps[0].position.y)
+        
         const levels = setInterval(()=>{
+            if(mystps[0].position.y <= 64 || Begine) return;
             this.speed += .01
-            // console.log(this.speed)
-            // console.log(mystps[mystps.length -1].position.y > canvas.height)
             if(mystps[mystps.length -1].position.y > canvas.height){
                 clearInterval(levels)
                 console.log('done')
             }
         } ,300)
     }
+    
 }
 
 
@@ -41,6 +47,7 @@ class Test extends SpeedLevel{
         this.collbloks = collbloks
         this.platformCollboks = platformCollboks
         this.speed = speed
+        
     }
 
     draw(color){
@@ -69,7 +76,7 @@ class Test extends SpeedLevel{
                 this.position.y + this.height >= collisionBlock.position.y &&
                 this.position.y <= collisionBlock.height + collisionBlock.position.y &&
                 this.position.x <= collisionBlock.width + collisionBlock.position.x &&
-                this.position.x + this.height >= collisionBlock.position.x 
+                this.position.x + this.height >= collisionBlock.position.x && Begine
             ){
                 if(this.veloctiy.y > 0){
                     this.veloctiy.y = 0
@@ -93,9 +100,10 @@ class Test extends SpeedLevel{
                 this.position.x + this.width >= collisionBlock.position.x
             ){
                 if(this.veloctiy.y > 0){
+                    // console.log('yes')
                     this.veloctiy.y = 1
-                    
                     this.position.y = collisionBlock.position.y - this.height + this.speed
+                    Begine = false;
                     break
                 }
                 
@@ -130,17 +138,23 @@ class Test extends SpeedLevel{
     }
 }
 // class for foolrcollision 
-class floorCollisions extends SpeedLevel{
-    constructor({position, speed=0}){
+class floorCollisions extends SpeedLevel {
+    constructor({position, speed=0, isFloor=false}){
         super(speed)
         this.position = position
         this.height = 12
         this.width = 32
         this.speed = speed
+        this.isFloor = isFloor
+
         
     }
     draw(){
-        ctx.fillStyle = 'rgba(0,0,255,0.3)'
+        if(this.isFloor){
+            (Begine) ? ctx.fillStyle = 'rgb(219, 175, 1)': ctx.fillStyle = "red";
+        }else{
+            ctx.fillStyle = 'rgb(1, 97, 110)'
+        }
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
     update(){
@@ -169,12 +183,14 @@ floor2D.forEach((elm, Y)=>{
                 position:{
                     x: X *32,
                     y:Y * 32,
-                }
+                },
+                isFloor: true,
             }))
         }
     })
 })
 let mystps = []
+
 s2d.forEach((elm, Y)=>{
     elm.forEach((symbol, X) =>{
         if(symbol == 7 || symbol == 8 || symbol == 9){
@@ -183,11 +199,12 @@ s2d.forEach((elm, Y)=>{
                     x: X *32,
                     y: -Y * 32,
                 },
-                speed: .5
+                speed: 1
             }))
         }
     })
 })
+
 
 // object of the class player
 const player = new Test({
@@ -203,7 +220,7 @@ const player = new Test({
     width: 20,
     collbloks: collisions,
     platformCollboks: mystps,
-    speed: .5
+    speed:1
 })
     
 
@@ -219,6 +236,7 @@ window.addEventListener('keydown', (e)=>{
             player.veloctiy.x = -2
             break
         case " ":
+            // player.veloctiy.y = -10
             if(Math.floor(player.position.y + player.height) == canvas.height - 15){
                 player.veloctiy.y = -10
             }else{
@@ -247,20 +265,38 @@ window.addEventListener('keyup', (e)=>{
     }
 })
 
-
 // the loop that keep the game goning 
-function loop(){
-    window.requestAnimationFrame(loop)
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    player.update('red');
+
+const game = document.querySelector('.play');
+const container = document.querySelector('.container');
+const gameOver = document.querySelector('.gameOver');
+const play = document.querySelector('.interface');
+game.addEventListener('click', ()=>{
+    container.style.display = 'none'
+ 
+    function loop(){
+        if(player.position.y > canvas.height){
+            container.style.display = 'block';
+            console.log(play.childNodes)
+            play.childNodes[1].innerHTML = 'Game Over';
+            player.position.y = 0
+            Begine = true
+            
+        }else{
+            window.requestAnimationFrame(loop)
+            ctx.fillStyle = 'black'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            player.update('red');
+            // console.log(player.position.y, canvas.height)
     
-    collisions.forEach(elm=>{
-        elm.draw()
-    })
-    mystps.forEach(elm=>{
-        elm.update() 
-    })
-    
-}
-loop()
+            collisions.forEach(elm=>{
+                elm.draw()
+            })
+            mystps.forEach(elm=>{
+                elm.update() 
+            })
+        }
+    }
+    loop()
+})
+
