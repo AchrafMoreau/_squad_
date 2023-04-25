@@ -1,55 +1,81 @@
 
+
+
 const canvas = document.getElementById('canvas');
 canvas.width = 510
 canvas.height = 590
-
+const img = new Image();
+img.src = 'background.jpg'
 const ctx = canvas.getContext('2d');
 
 
 
 
 ctx.fillRect(0,0, canvas.width, canvas.height)
+Begine = true;
 
-
-
-
-
-const gravity = 0.2
-
-// class for player
-class Test{
-    constructor({position, velocity, height, width, collbloks, platformCollboks}){
-        this.position = position
-        this.veloctiy = velocity
-        this.collbloks = collbloks
-        this.platformCollboks = platformCollboks
-        this.height = height
-        this.width = width
+class SpeedLevel{
+    
+    constructor(speed){
+        this.speed = speed
+        // if(mystps[0].position.y)
+        
+        const levels = setInterval(()=>{
+            if(mystps[0].position.y <= 64 || Begine) return;
+            this.speed += .01
+            if(mystps[mystps.length -1].position.y > canvas.height){
+                clearInterval(levels)
+                console.log('done')
+            }
+        } ,300)
     }
     
-    draw(imageSrc){
-        const image = new Image()
-        image.src = imageSrc
-        ctx.drawImage(image,this.position.x ,this.position.y)
+}
+
+
+const gravity = 0.5
+
+// class for player
+class Test extends SpeedLevel{
+    constructor({position, velocity, height, width, collbloks, platformCollboks, speed}){
+        super(speed)
+        this.position = position
+        this.veloctiy = velocity
+        this.height = height
+        this.width = width
+        this.collbloks = collbloks
+        this.platformCollboks = platformCollboks
+        this.speed = speed
+        
     }
 
-    update(imageSrc){
-        this.draw(imageSrc)
+    draw(color){
+        ctx.fillStyle = color
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
+        
+    }
+
+    update(color){
+        this.draw(color)
         this.position.y += this.veloctiy.y
         this.veloctiy.y += gravity
         this.position.x += this.veloctiy.x
-        
+        if(this.position.x  <= 0 ){
+            this.position.x = 0
+        }else if(this.position.x + this.width >= canvas.width){
+            this.position.x = canvas.width - this.width
+        }
         this.checkForVerticalIntraction()
-        this.checkForHorizontalIntraction()
     }
     checkForVerticalIntraction(){
+
         for(let i = 0; i<this.collbloks.length; i++){
             const collisionBlock = this.collbloks[i]
             if(
                 this.position.y + this.height >= collisionBlock.position.y &&
                 this.position.y <= collisionBlock.height + collisionBlock.position.y &&
                 this.position.x <= collisionBlock.width + collisionBlock.position.x &&
-                this.position.x + this.height >= collisionBlock.position.x 
+                this.position.x + this.height >= collisionBlock.position.x && Begine
             ){
                 if(this.veloctiy.y > 0){
                     this.veloctiy.y = 0
@@ -72,17 +98,20 @@ class Test{
                 this.position.x <= collisionBlock.position.x + collisionBlock.width &&
                 this.position.x + this.width >= collisionBlock.position.x
             ){
-                
                 if(this.veloctiy.y > 0){
-                    this.veloctiy.y = 0
-                    this.position.y = collisionBlock.position.y - this.height + 0.5
+                    // console.log('yes')
+                    this.veloctiy.y = 1
+                    this.position.y = collisionBlock.position.y - this.height + this.speed
+                    Begine = false;
                     break
                 }
+                
                 
                 
             }
         }
     }
+
     checkForHorizontalIntraction(){
         for(let i = 0; i<this.collbloks.length; i++){
             const collisionBlock = this.collbloks[i]
@@ -105,50 +134,35 @@ class Test{
                 }
             }
         }
-        // for(let i = 0; i<this.platformCollboks.length; i++){
-        //     const platformColl = this.platformCollboks[i]
-        //     if(
-        //         this.position.y + this.height >= platformColl.position.y &&
-        //         this.position.y + this.height <=
-        //           platformColl.position.y + platformColl.height &&
-        //         this.position.x <= platformColl.position.x + platformColl.width &&
-        //         this.position.x + this.width >= platformColl.position.x
-        //     ){
-                
-        //         if(this.veloctiy.x > 0){
-        //             this.veloctiy.x = 0
-        //             this.position.x = collisionBlock.position.x - this.width - 0.01
-        //             break
-        //         }
-        //         if(this.veloctiy.x < 0){
-        //             this.veloctiy.x = 0
-        //             this.veloctiy.x = collisionBlock.position.x + this.width + 0.01
-        //             break
-        //         }
-        //     }
-        // }
     }
 }
 // class for foolrcollision 
-class floorCollisions{
-    constructor({position, speed=0}){
+class floorCollisions extends SpeedLevel {
+    constructor({position, speed=0, isFloor=false}){
+        super(speed)
         this.position = position
-        this.height = 16
+        this.height = 12
         this.width = 32
         this.speed = speed
+        this.isFloor = isFloor
+
+        
     }
     draw(){
-        ctx.fillStyle = 'rgba(0,0,255,0.3)'
+        if(this.isFloor){
+            (Begine) ? ctx.fillStyle = 'rgb(219, 175, 1)': ctx.fillStyle = "red";
+        }else{
+            ctx.fillStyle = 'rgb(1, 97, 110)'
+        }
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
     update(){
         this.draw()
         this.position.y += this.speed
 
-
     }
+    
 }
-
 
 
 const floor2D = []
@@ -157,6 +171,10 @@ for(let i =0 ; i<floor.length; i+= 16){
 }
 const s2d = []
 for(let i =0 ; i<ourStepes.length; i+= 16){
+    s2d.push(ourStepes.slice(i, i+16))
+}
+const Coins = []
+for(let i =0 ; i<coinsPlace.length; i+= 16){
     s2d.push(ourStepes.slice(i, i+16))
 }
 
@@ -168,12 +186,14 @@ floor2D.forEach((elm, Y)=>{
                 position:{
                     x: X *32,
                     y:Y * 32,
-                }
+                },
+                isFloor: true,
             }))
         }
     })
 })
 let mystps = []
+
 s2d.forEach((elm, Y)=>{
     elm.forEach((symbol, X) =>{
         if(symbol == 7 || symbol == 8 || symbol == 9){
@@ -182,11 +202,29 @@ s2d.forEach((elm, Y)=>{
                     x: X *32,
                     y: -Y * 32,
                 },
-                speed: .5
+                speed: 1
             }))
         }
     })
 })
+// my addition to code
+let myCoins = []
+Coins.forEach((elm, Y)=>{
+    elm.forEach((symbol, X) =>{
+        if(symbol == 202){
+            collisions.push(new floorCollisions({
+                position:{
+                    x: X * 16,
+                    y: Y * 16,
+                },
+                speed : 1
+            }))
+        }
+    })
+})
+
+
+
 
 // object of the class player
 
@@ -199,15 +237,15 @@ const player = new Test({
         x:0,
         y:8
     },
-    height:40,
+    height:50,
     width: 20,
     collbloks: collisions,
     platformCollboks: mystps,
+    speed:1
 })
-
     
 
-
+// console.log(mystps[mystps.length -1].position.y , canvas.height)
 
 // event listener for keydown
 window.addEventListener('keydown', (e)=>{
@@ -219,15 +257,18 @@ window.addEventListener('keydown', (e)=>{
             player.veloctiy.x = -2
             break
         case " ":
-            mystps.forEach(elm=>{
-                if(player.position.y + player.height == elm.position.y)
-                {
-                    player.veloctiy.y = -5
-                    
-                }else if(Math.floor(player.position.y + player.height) == canvas.height - 15){
-                    player.veloctiy.y = -5
-                }
-            })
+            // player.veloctiy.y = -10
+            if(Math.floor(player.position.y + player.height) == canvas.height - 15){
+                player.veloctiy.y = -10
+            }else{
+
+                mystps.forEach(elm=>{
+                    if(player.position.y + player.height == elm.position.y)
+                    {
+                        player.veloctiy.y = -10
+                    }
+                })
+            }
 
     }
 })
@@ -245,31 +286,41 @@ window.addEventListener('keyup', (e)=>{
     }
 })
 
-
-
 // the loop that keep the game goning 
-let count_img = 1
-let dateImage = 0
-function loop(){
-    window.requestAnimationFrame(loop)
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    const date = new Date().getTime()
-    if (date - dateImage >= 150){
-        dateImage = date
-        count_img += 1
-        if (count_img >= 10){
-            count_img = 1
+
+const game = document.querySelector('.play');
+const container = document.querySelector('.container');
+const gameOver = document.querySelector('.gameOver');
+const play = document.querySelector('.interface');
+game.addEventListener('click', ()=>{
+    container.style.display = 'none'
+ 
+    function loop(){
+        if(player.position.y > canvas.height){
+            container.style.display = 'block';
+            console.log(play.childNodes)
+            play.childNodes[1].innerHTML = 'Game Over';
+            player.position.y = 0
+            Begine = true
+            
+        }else{
+            window.requestAnimationFrame(loop)
+            ctx.fillStyle = 'black'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            player.update('red');
+
+            collisions.forEach(elm=>{
+                elm.draw()
+            })
+            // my addition to code
+            myCoins.forEach(elm=>{
+                elm.draw()
+            })
+            mystps.forEach(elm=>{
+                elm.update() 
+            })
         }
     }
-    player.update(`./image/img${count_img}.png`);
-    collisions.forEach(elm=>{
-        elm.draw()
-    })
-    mystps.forEach(elm=>{
-        elm.update()
-        
-    })
-    
-}
-loop()
+    loop()
+})
+
